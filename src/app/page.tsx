@@ -2,7 +2,9 @@
 
 import { useEffect } from "react";
 
-import { jobs, servers, job } from "./mocks/data";
+import { scenarios, job } from "./mocks/data";
+
+const { servers, jobs } = scenarios["simple"];
 
 function checkTimeNeeded(time: number, element: job) {
   const jobRunning: Array<number> = [];
@@ -15,35 +17,48 @@ function checkTimeNeeded(time: number, element: job) {
 }
 
 function pushJobToServer(jobRunning: Array<number>, element: job) {
-  if (element.demands === 1) {
-    // 1 server
-    // Handle the time
+  const duration = element.time;
 
-    if (jobRunning) {
-      const temporaryServer = servers[0];
+  const currentTime = servers[0].running?.length ?? 0;
 
-      if (!temporaryServer.running) {
-        temporaryServer.running = [];
+  const availableServers = servers.filter((server) => {
+    if (!server.running) server.running = [];
+
+    for (let t = currentTime; t < currentTime + duration; t++) {
+      if (server.running[t] !== undefined) {
+        return false;
       }
-
-      jobRunning.forEach(() => {
-        temporaryServer.running?.push(element.name);
-      });
     }
+
+    return true;
+  });
+
+  console.log("Available Servers:", availableServers);
+
+  if (availableServers.length < element.demands) {
+    console.log(
+      `Cannot push ${element.name} because ther server is not available`,
+    );
+    return;
   }
 
-  // if (element.demands === 2) {
-  //   // 2 server
-  //   // Handle the time
-  //   jobs.push("");
-  // }
+  const selectedServers = availableServers.slice(0, element.demands);
+
+  selectedServers.forEach((server) => {
+    if (!server.running) {
+      server.running = [];
+    }
+
+    jobRunning.forEach((_, i) => {
+      server.running![currentTime + i] = {
+        time: currentTime + i,
+        job: element.name,
+      };
+    });
+  });
 }
 
 export default function Home() {
-  //1:  interaction (for) in the Jobs
-  //2: Ask the question Iteract until the time is done
-  // 3: Keep the loop for the next job
-
   // Add use effect to avoid react re-render
   useEffect(() => {
     jobs.forEach((element) => {
