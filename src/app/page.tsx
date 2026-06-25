@@ -1,31 +1,34 @@
 "use client";
-import CircularProgress from "@mui/material/CircularProgress";
-import Box from "@mui/material/Box";
-import orders from "./mocks/orders.json";
 
-import { useState } from "react";
-import { IOrder } from "./types/orders";
+import { useEffect } from "react";
+
 import { jobs, servers, job } from "./mocks/data";
 
 function checkTimeNeeded(time: number, element: job) {
-  if (time == 3) {
-    //generate an array with 1 interaction
-    const jobRunning: Array<number> = [];
-    jobRunning.push(3);
-    pushJobToServer(jobRunning, element);
+  const jobRunning: Array<number> = [];
+
+  for (let i = 0; i < time; i++) {
+    jobRunning.push(i);
   }
+
+  pushJobToServer(jobRunning, element);
 }
 
 function pushJobToServer(jobRunning: Array<number>, element: job) {
-  console.log("pushJobToServer");
   if (element.demands === 1) {
     // 1 server
     // Handle the time
 
     if (jobRunning) {
-      const temporaryServer = servers;
-      temporaryServer[0].running?.push(3);
-      console.log("**temporaryServer", temporaryServer);
+      const temporaryServer = servers[0];
+
+      if (!temporaryServer.running) {
+        temporaryServer.running = [];
+      }
+
+      jobRunning.forEach(() => {
+        temporaryServer.running?.push(element.name);
+      });
     }
   }
 
@@ -41,15 +44,19 @@ export default function Home() {
   //2: Ask the question Iteract until the time is done
   // 3: Keep the loop for the next job
 
-  jobs.forEach((element) => {
-    checkTimeNeeded(element.time, element);
-  });
+  // Add use effect to avoid react re-render
+  useEffect(() => {
+    jobs.forEach((element) => {
+      checkTimeNeeded(element.time, element);
+    });
+
+    console.log(servers[0].running);
+  }, []);
 
   return (
     <div className="flex flex-col flex-1 border items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <div className="flex">
         <h2 className="mr-2 font-bold">Buyer infos:</h2>
-        <p>{orders.customer.name}</p>
       </div>
     </div>
   );

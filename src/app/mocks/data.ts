@@ -1,7 +1,7 @@
 type server = {
   id: number;
   name: string;
-  running?: Array<number>;
+  running?: Array<string>;
 };
 
 export type job = {
